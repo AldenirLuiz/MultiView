@@ -2,14 +2,33 @@ import cv2
 import time
 import os
 import numpy as np
-from tkinter import Tk, Frame, Button, Label, Checkbutton, Entry
-from tkinter import filedialog
+
+
+def _enable_hardware_acceleration(use_gpu):
+    if not use_gpu:
+        return False
+
+    if hasattr(cv2, "ocl") and cv2.ocl.haveOpenCL():
+        cv2.ocl.setUseOpenCL(True)
+        return True
+
+    return False
+
+
+def _as_mat(frame):
+    if hasattr(frame, "get"):
+        return frame.get()
+    return frame
 
 
 
-def main(video_sources, screen_width):
+def main(video_sources, screen_width, use_gpu=False):
     # Open a VideoCapture for each source (file path or device index)
     caps = [cv2.VideoCapture(src) for src in video_sources]
+    hardware_accel = _enable_hardware_acceleration(use_gpu)
+
+    if use_gpu and not hardware_accel:
+        print("Warning: hardware acceleration requested, but OpenCL is not available. Falling back to CPU.")
 
     if not any(cap.isOpened() for cap in caps):
         print("Error: None of the video sources could be opened.")
@@ -18,7 +37,7 @@ def main(video_sources, screen_width):
         return
 
     # Determine a reasonable FPS from the first opened capture
-    fps = 30.0
+    fps = cv2.CAP_PROP_FPS
     for cap in caps:
         if cap.isOpened():
             framerate = cap.get(cv2.CAP_PROP_FPS)
@@ -30,6 +49,8 @@ def main(video_sources, screen_width):
     while True:
         start = time.perf_counter()
         frames = []
+        screen = (screen_width[0], screen_width[1])
+        
 
         for cap, src in zip(caps, video_sources):
             if not cap.isOpened():
@@ -62,7 +83,12 @@ def main(video_sources, screen_width):
             tile_height = int(screen_height) 
             
             if f is None:
-                return 255 * np.ones((tile_height, tile_width, 3), dtype=np.uint8)
+                tile = np.full((tile_height, tile_width, 3), 255, dtype=np.uint8)
+                return cv2.UMat(tile) if hardware_accel else tile
+
+            if hardware_accel:
+                return cv2.resize(cv2.UMat(f), (tile_width, tile_height))
+
             return cv2.resize(f, (tile_width, tile_height))
 
         tiles = [to_tile(frames[i]) for i in range(4)]
@@ -71,7 +97,7 @@ def main(video_sources, screen_width):
         row2 = cv2.hconcat([tiles[2], tiles[3]])
         combined = cv2.vconcat([row1, row2])
 
-        cv2.imshow('Video Stream', combined)
+        cv2.imshow('Video Stream', _as_mat(combined))
 
         # Maintain approximate framerate
         progress = (time.perf_counter() - start)
@@ -88,75 +114,4 @@ def main(video_sources, screen_width):
 
 
 if __name__ == "__main__":
-    video_paths = []
-    root = Tk()
-    frm_root = Frame(root)
-    label = Label(frm_root, text="Select video files to display in a 2x2 grid. Press 'q' to quit.")
-    label.pack(padx=10, pady=10)
-    use_webcam = False
-    
- 
-    chck_webcam = Checkbutton(frm_root, text="Use Webcam", command=lambda : toggle_webcam())
-    chck_webcam.pack(padx=10, pady=10)
-    
-    entry_url = Entry(frm_root, width=50, state='disabled')
-    entry_url.pack(padx=10, pady=10)
-    
-    bttn_select = Button(frm_root, text="Select Videos", command=lambda: on_select_videos())
-    bttn_select.pack(padx=10, pady=10)
-    
-    bttn_select_webcam = Button(frm_root, text="Use Webcam", command=lambda: on_use_webcam())
-    bttn_select_webcam.pack(padx=10, pady=10)
-    
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    screen = (screen_width, screen_height)
-    
-    def toggle_webcam():
-        global use_webcam
-        
-        if use_webcam:
-            entry_url.config(state='disabled')
-            bttn_select_webcam.config(state='disabled')
-            use_webcam = False
-        else:
-            entry_url.config(state='normal')
-            bttn_select_webcam.config(state='normal')
-            use_webcam = True
-    
-    
-    
-    if use_webcam:
-        entry_url.config(state='normal')
-        bttn_select_webcam.config(state='normal')
-        
-    else:
-        entry_url.config(state='disabled')
-        bttn_select_webcam.config(state='disabled')
-    
-   
-    def on_select_videos():
-        video_paths = filedialog.askopenfilenames(
-        title="Select Video Files",
-        filetypes=[("Video files", "*.bik")]
-        )
-        root.withdraw()  # Hide the main window
-        videos = list(video_paths)
-        main(videos, screen)
-        
-        root.deiconify()  # Show the main window again after processing videos
-        root.update_idletasks()
-        
-    
-    def on_use_webcam():
-        url = entry_url.get()
-        if url:
-            video_sources = [url]
-            main(video_sources, screen)
-        else:
-            video_sources = [0]  # Use only the webcam
-        root.withdraw()  # Hide the main window
-
-    frm_root.pack()
-    root.mainloop()
-    
+    pass
