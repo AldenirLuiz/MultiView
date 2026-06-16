@@ -40,9 +40,11 @@ def main(video_sources, screen_width, use_gpu=False):
     fps = cv2.CAP_PROP_FPS
     for cap in caps:
         if cap.isOpened():
-            framerate = cap.get(cv2.CAP_PROP_FPS)
+            framerate = 60 #cap.get(cv2.CAP_PROP_FPS)
             if framerate and framerate > 0:
                 fps = framerate
+            
+            print(f"Using FPS: {fps} from source")
             break
     wait_time = 1.0 / fps if fps > 0 else 1.0 / 30
 
