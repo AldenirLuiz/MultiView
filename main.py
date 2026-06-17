@@ -10,7 +10,7 @@ from collections import deque
 DEFAULT_BUFFER_SIZE = 15  # Aumentado para melhor fluidez
 FRAME_QUEUE_SIZE = 8     # Buffer de frames por fonte
 TARGET_FPS = 15
-FRAME_SKIP_THRESHOLD = 0.95  # Skip frame se atrasado
+FRAME_SKIP_THRESHOLD = 1.2  # Skip frame se atrasado
 
 
 def _enable_hardware_acceleration(use_gpu):
@@ -331,17 +331,17 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
     if hardware_accel:
         empty_tile = cv2.UMat(empty_tile)
 
-    frame_cache = deque(maxlen=3)  # Cache de frames recentes
-    frame_times = deque(maxlen=30)  # Para cálculo de FPS
+    frame_cache = deque(maxlen=5)  # Cache de frames recentes
+    frame_times = deque(maxlen=15)  # Para cálculo de FPS
     last_frame_time = time.perf_counter()
-    target_wait = 1000 // TARGET_FPS  # milliseconds
+    target_wait = 100 #1000 // TARGET_FPS  # milliseconds (valores baixos faz a tela piscar se tiver atraso)
     first_frame_displayed = False
 
     try:
         while True:
             start_frame_time = time.perf_counter()
             frame_times.append(start_frame_time)
-            
+
             # Obter últimos frames disponíveis (não bloquear)
             current_frames = []
             for i, queue in enumerate(frame_queues):
@@ -353,12 +353,13 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
                     current_frames.append(frame)
                 except Empty:
                     # Se fila vazia, usar frame anterior do cache se disponível
-                    current_frames.append(None)
-
+                    current_frames.append(None)  
+                
+            current_frames.append(frame)
             # Se todos os frames None, abortar
-            if all(f is None for f in current_frames):
+            """if all(f is None for f in current_frames):
                 time.sleep(0.01)
-                continue
+                continue"""
             
             # Marcar que primeiro frame foi exibido com sucesso
             if not first_frame_displayed:

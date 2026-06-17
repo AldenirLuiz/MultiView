@@ -1,10 +1,6 @@
 [
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=1&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=2&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=3&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=4&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=5&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=6&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=7&subtype=1",
-  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=8&subtype=1"
+  "rtsp://admin:lancer007@10.0.0.112/cam/realmonitor?channel=1&subtype=0",
+  "rtsp://admin:lancer007@10.0.0.112/cam/realmonitor?channel=2&subtype=0",
+  "rtsp://admin:lancer007@10.0.0.112/cam/realmonitor?channel=3&subtype=0",
+  "rtsp://admin:lancer007@10.0.0.112/cam/realmonitor?channel=4&subtype=0"
 ]
