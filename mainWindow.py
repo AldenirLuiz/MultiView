@@ -1,7 +1,82 @@
-from tkinter import Tk, Checkbutton, Entry, Button, Frame, Label, BooleanVar, filedialog, Listbox, END, SINGLE, messagebox
+from tkinter import Tk, Checkbutton, Entry, Button, Frame, Label, BooleanVar, filedialog, Listbox, END, SINGLE, messagebox, Toplevel
+import tkinter.ttk as ttk
 import json
 import os
+import threading
+import time
 from main import main
+
+
+class LoadingScreen:
+    """Tela de carregamento com barra de progresso"""
+    def __init__(self, parent):
+        self.window = Toplevel(parent)
+        self.window.title("Carregando...")
+        self.window.geometry("450x180")
+        self.window.resizable(False, False)
+        self.window.grab_set()
+        self.closed = False
+        
+        # Centralizar na tela
+        self.window.transient(parent)
+        self.window.update_idletasks()
+        
+        # Tentar centralizar, com fallback
+        try:
+            x = parent.winfo_x() + (parent.winfo_width() // 2) - 225
+            y = parent.winfo_y() + (parent.winfo_height() // 2) - 90
+            self.window.geometry(f"450x180+{x}+{y}")
+        except:
+            self.window.geometry("450x180")
+        
+        # Frame principal
+        main_frame = Frame(self.window, padx=20, pady=20)
+        main_frame.pack(fill='both', expand=True)
+        
+        # Label de mensagem
+        self.lbl_message = Label(main_frame, text="Conectando câmeras...", font=("Arial", 12, "bold"))
+        self.lbl_message.pack(pady=(0, 15))
+        
+        # Barra de progresso
+        self.progress = ttk.Progressbar(
+            main_frame, 
+            length=400, 
+            mode='determinate',
+            maximum=100
+        )
+        self.progress.pack(pady=10)
+        
+        # Label de porcentagem
+        self.lbl_percent = Label(main_frame, text="0%", font=("Arial", 10))
+        self.lbl_percent.pack(pady=(10, 0))
+        
+        # Protocolo para fechar
+        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def on_close(self):
+        """Quando usuário tenta fechar a tela"""
+        self.closed = True
+        self.close()
+        
+    def update_progress(self, message, percent):
+        """Atualizar progresso"""
+        if self.closed:
+            return
+        try:
+            self.lbl_message.config(text=message)
+            self.progress['value'] = percent
+            self.lbl_percent.config(text=f"{percent}%")
+            self.window.update()
+            self.window.update_idletasks()
+        except:
+            pass
+    
+    def close(self):
+        """Fechar tela de carregamento"""
+        try:
+            self.window.destroy()
+        except:
+            pass
 
 
 class MainWindow:
@@ -116,26 +191,71 @@ class MainWindow:
         title="Select Video Files",
         filetypes=[("Video files", "*.mp4 *.avi *.mkv *.mov"), ("All files", "*.*")]
         )
+        if not video_paths:
+            return
+        
         self.window.withdraw()  # Hide the main window
         videos = list(video_paths)
-        main(videos, self.screen, use_gpu=self.use_hardware_acceleration.get())
         
-        self.window.deiconify()  # Show the main window again after processing videos
-        self.window.update_idletasks()
+        # Criar tela de loading
+        loading = LoadingScreen(self.window)
+        
+        # Rodar main() em thread separada
+        def run_main():
+            try:
+                main(
+                    videos, 
+                    self.screen, 
+                    use_gpu=self.use_hardware_acceleration.get(),
+                    on_progress=loading.update_progress
+                )
+            except Exception as e:
+                print(f"Erro ao reproduzir: {e}")
+            finally:
+                try:
+                    loading.close()
+                except:
+                    pass
+                self.window.deiconify()
+                self.window.update_idletasks()
+        
+        thread = threading.Thread(target=run_main, daemon=False)
+        thread.start()
         
 
     def on_use_webcam(self):
         url = self.entry_url.get()
-        if url:
-            video_sources = [url]
-            self.window.withdraw()
-            main(video_sources, self.screen)
-            self.window.deiconify()
-        else:
-            video_sources = [0]  # Use only the webcam
-            self.window.withdraw()
-            main(video_sources, self.screen)
-            self.window.deiconify()
+        self.window.withdraw()
+        
+        # Criar tela de loading
+        loading = LoadingScreen(self.window)
+        
+        # Rodar main() em thread separada
+        def run_main():
+            try:
+                if url:
+                    video_sources = [url]
+                else:
+                    video_sources = [0]  # Use only the webcam
+                
+                main(
+                    video_sources, 
+                    self.screen,
+                    use_gpu=self.use_hardware_acceleration.get(),
+                    on_progress=loading.update_progress
+                )
+            except Exception as e:
+                print(f"Erro ao reproduzir: {e}")
+            finally:
+                try:
+                    loading.close()
+                except:
+                    pass
+                self.window.deiconify()
+                self.window.update_idletasks()
+        
+        thread = threading.Thread(target=run_main, daemon=False)
+        thread.start()
 
     def add_url(self):
         url = self.entry_url.get().strip()
@@ -227,8 +347,31 @@ class MainWindow:
             messagebox.showwarning("Open URLs", "No URLs to open. Add or load URLs first.")
             return
         self.window.withdraw()
-        main(urls, self.screen, use_gpu=self.use_hardware_acceleration.get())
-        self.window.deiconify()
+        
+        # Criar tela de loading
+        loading = LoadingScreen(self.window)
+        
+        # Rodar main() em thread separada
+        def run_main():
+            try:
+                main(
+                    urls, 
+                    self.screen, 
+                    use_gpu=self.use_hardware_acceleration.get(),
+                    on_progress=loading.update_progress
+                )
+            except Exception as e:
+                print(f"Erro ao reproduzir: {e}")
+            finally:
+                try:
+                    loading.close()
+                except:
+                    pass
+                self.window.deiconify()
+                self.window.update_idletasks()
+        
+        thread = threading.Thread(target=run_main, daemon=False)
+        thread.start()
         
     def on_close(self):
         self.window.destroy()

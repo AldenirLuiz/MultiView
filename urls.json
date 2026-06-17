@@ -1,11 +1,10 @@
 [
-  "https://streams.videolan.org/samples/360VR/20180814_185056.MOV",
-  "https://streams.videolan.org/samples/MPEG-4/CDR-Dinner_LAN_800k.mp4",
-  "https://streams.videolan.org/samples/MPEG-4/Concession_LAN_800k.mp4",
-  "https://streams.videolan.org/samples/MPEG-H/01.%20Aerosmith%20-%20Back%20In%20the%20Saddle.mp4",
-  "https://streams.videolan.org/samples/MPEG-H/01.%20Billy%20Paul%20-%20Brown%20Baby.mp4",
-  "https://streams.videolan.org/samples/MPEG-H/01.%20Dua%20Lipa%20-%20Genesis%20%28360%20Reality%20Audio%29.mp4",
-  "https://streams.videolan.org/samples/MPEG-H/01.%20Mobb%20Deep%20-%20Shook%20Ones%2C%20Pt.%20II.mp4",
-  "https://streams.videolan.org/samples/camera-dvr/video.avd",
-  "https://streams.videolan.org/samples/camera-dvr/zzz.mpg"
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=1&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=2&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=3&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=4&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=5&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=6&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=7&subtype=1",
+  "rtsp://aldenir:lancer007@192.168.0.2:554/cam/realmonitor?channel=8&subtype=1"
 ]
