@@ -9,8 +9,8 @@ from collections import deque
 # Configuração otimizada para fluidez
 DEFAULT_BUFFER_SIZE = 15  # Aumentado para melhor fluidez
 FRAME_QUEUE_SIZE = 8     # Buffer de frames por fonte
-TARGET_FPS = 15
-FRAME_SKIP_THRESHOLD = 1.2  # Skip frame se atrasado
+TARGET_FPS = 24
+FRAME_SKIP_THRESHOLD = 0.2  # Skip frame se atrasado
 
 
 def _enable_hardware_acceleration(use_gpu):
@@ -334,7 +334,7 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
     frame_cache = deque(maxlen=5)  # Cache de frames recentes
     frame_times = deque(maxlen=15)  # Para cálculo de FPS
     last_frame_time = time.perf_counter()
-    target_wait = 100 #1000 // TARGET_FPS  # milliseconds (valores baixos faz a tela piscar se tiver atraso)
+    target_wait = 80 #000 // TARGET_FPS * TARGET_FPS # milliseconds (valores baixos faz a tela piscar se tiver atraso)
     first_frame_displayed = False
 
     try:

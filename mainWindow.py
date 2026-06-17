@@ -10,27 +10,28 @@ from main import main
 class LoadingScreen:
     """Tela de carregamento com barra de progresso"""
     def __init__(self, parent):
-        self.window = Toplevel(parent)
-        self.window.title("Carregando...")
-        self.window.geometry("450x180")
-        self.window.resizable(False, False)
-        self.window.grab_set()
+        print("instaced")
+        self.root = Toplevel(parent)
+        self.root.title("Carregando...")
+        self.root.geometry("450x180")
+        self.root.resizable(False, False)
+        self.root.grab_set()
         self.closed = False
         
         # Centralizar na tela
-        self.window.transient(parent)
-        self.window.update_idletasks()
+        #self.root.transient(parent)
+        self.root.update_idletasks()
         
         # Tentar centralizar, com fallback
         try:
             x = parent.winfo_x() + (parent.winfo_width() // 2) - 225
             y = parent.winfo_y() + (parent.winfo_height() // 2) - 90
-            self.window.geometry(f"450x180+{x}+{y}")
+            self.root.geometry(f"450x180+{x}+{y}")
         except:
-            self.window.geometry("450x180")
+            self.root.geometry("450x180")
         
         # Frame principal
-        main_frame = Frame(self.window, padx=20, pady=20)
+        main_frame = Frame(self.root, padx=20, pady=20)
         main_frame.pack(fill='both', expand=True)
         
         # Label de mensagem
@@ -50,8 +51,7 @@ class LoadingScreen:
         self.lbl_percent = Label(main_frame, text="0%", font=("Arial", 10))
         self.lbl_percent.pack(pady=(10, 0))
         
-        # Protocolo para fechar
-        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
+        
         
     def on_close(self):
         """Quando usuário tenta fechar a tela"""
@@ -66,15 +66,15 @@ class LoadingScreen:
             self.lbl_message.config(text=message)
             self.progress['value'] = percent
             self.lbl_percent.config(text=f"{percent}%")
-            self.window.update()
-            self.window.update_idletasks()
+            self.root.update()
+            self.root.update_idletasks()
         except:
             pass
     
     def close(self):
         """Fechar tela de carregamento"""
         try:
-            self.window.destroy()
+            self.root.destroy()
         except:
             pass
 
@@ -82,22 +82,22 @@ class LoadingScreen:
 class MainWindow:
     def __init__(self, screen_width):
         self.screen_width = screen_width
-        self.window = Tk()
-        self.window.title("Multi View Player")
-        #self.window.geometry(f"{screen_width}x{screen_width}")
-        self.window.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.screen_width = self.window.winfo_screenwidth()
-        self.screen_height = self.window.winfo_screenheight()
+        self.root = Tk()
+        self.root.title("Multi View Player")
+        #self.root.geometry(f"{screen_width}x{screen_width}")
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.screen_width = self.root.winfo_screenwidth()
+        self.screen_height = self.root.winfo_screenheight()
         self.use_webcam = True
         self.screen = (self.screen_width, self.screen_height)
         self.use_hardware_acceleration = BooleanVar(value=False)
         
-        self.frm_options = Frame(self.window, bd=2, relief='groove')
-        self.frm_fields_left = Frame(self.window, bd=2, relief='groove')
-        self.frm_fields_right = Frame(self.window, bd=2, relief='groove')
+        self.frm_options = Frame(self.root, bd=2, relief='groove')
+        self.frm_fields_left = Frame(self.root, bd=2, relief='groove')
+        self.frm_fields_right = Frame(self.root, bd=2, relief='groove')
         
         
-        self.frm_root = Frame(self.window)
+        self.frm_root = Frame(self.root)
         
         self.chck_webcam = Checkbutton(self.frm_options, text="Use Webcam", indicatoron=True, command=lambda : self.toggle_webcam())
         self.chck_webcam.pack(padx=10, pady=10, side='left', anchor='nw')
@@ -174,7 +174,7 @@ class MainWindow:
         self.default_urls_file = os.path.join(os.getcwd(), 'urls.json')
         # try auto-load default URLs
         self.load_default_urls()
-        self.window.mainloop()
+        self.root.mainloop()
 
     def toggle_webcam(self):
         if self.use_webcam:
@@ -194,11 +194,11 @@ class MainWindow:
         if not video_paths:
             return
         
-        self.window.withdraw()  # Hide the main window
+        self.root.withdraw()  # Hide the main window
         videos = list(video_paths)
         
         # Criar tela de loading
-        loading = LoadingScreen(self.window)
+        loading = LoadingScreen(self.root)
         
         # Rodar main() em thread separada
         def run_main():
@@ -216,8 +216,8 @@ class MainWindow:
                     loading.close()
                 except:
                     pass
-                self.window.deiconify()
-                self.window.update_idletasks()
+                self.root.deiconify()
+                self.root.update_idletasks()
         
         thread = threading.Thread(target=run_main, daemon=False)
         thread.start()
@@ -225,10 +225,10 @@ class MainWindow:
 
     def on_use_webcam(self):
         url = self.entry_url.get()
-        self.window.withdraw()
+        self.root.withdraw()
         
         # Criar tela de loading
-        loading = LoadingScreen(self.window)
+        loading = LoadingScreen(self.root)
         
         # Rodar main() em thread separada
         def run_main():
@@ -251,8 +251,8 @@ class MainWindow:
                     loading.close()
                 except:
                     pass
-                self.window.deiconify()
-                self.window.update_idletasks()
+                self.root.deiconify()
+                self.root.update_idletasks()
         
         thread = threading.Thread(target=run_main, daemon=False)
         thread.start()
@@ -346,10 +346,10 @@ class MainWindow:
         if not urls:
             messagebox.showwarning("Open URLs", "No URLs to open. Add or load URLs first.")
             return
-        self.window.withdraw()
+        self.root.withdraw()
         
         # Criar tela de loading
-        loading = LoadingScreen(self.window)
+        loading = LoadingScreen(self.root)
         
         # Rodar main() em thread separada
         def run_main():
@@ -367,14 +367,14 @@ class MainWindow:
                     loading.close()
                 except:
                     pass
-                self.window.deiconify()
-                self.window.update_idletasks()
+                self.root.deiconify()
+                self.root.update_idletasks()
         
         thread = threading.Thread(target=run_main, daemon=False)
         thread.start()
         
     def on_close(self):
-        self.window.destroy()
+        self.root.destroy()
 
 
 if __name__ == "__main__":
