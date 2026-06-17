@@ -9,68 +9,87 @@ class MainWindow:
         self.screen_width = screen_width
         self.window = Tk()
         self.window.title("Multi View Player")
-        self.window.geometry(f"{screen_width}x{screen_width}")
+        #self.window.geometry(f"{screen_width}x{screen_width}")
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
         self.screen_width = self.window.winfo_screenwidth()
         self.screen_height = self.window.winfo_screenheight()
-        self.on_use_webcam = False
+        self.use_webcam = True
         self.screen = (self.screen_width, self.screen_height)
         self.use_hardware_acceleration = BooleanVar(value=False)
+        
+        self.frm_options = Frame(self.window, bd=2, relief='groove')
+        self.frm_fields_left = Frame(self.window, bd=2, relief='groove')
+        self.frm_fields_right = Frame(self.window, bd=2, relief='groove')
         
         
         self.frm_root = Frame(self.window)
         
-        self.chck_webcam = Checkbutton(self.frm_root, text="Use Webcam", command=lambda : self.toggle_webcam())
-        self.chck_webcam.pack(padx=10, pady=10)
+        self.chck_webcam = Checkbutton(self.frm_options, text="Use Webcam", indicatoron=True, command=lambda : self.toggle_webcam())
+        self.chck_webcam.pack(padx=10, pady=10, side='left', anchor='nw')
+        self.chck_webcam.select()  # Default to using webcam
 
         self.chck_hardware_acceleration = Checkbutton(
-            self.frm_root,
+            self.frm_options,
             text="Use Hardware Acceleration (GPU/OpenCL)",
             variable=self.use_hardware_acceleration,
         )
-        self.chck_hardware_acceleration.pack(padx=10, pady=10)
+        self.chck_hardware_acceleration.pack(padx=10, pady=10, side='right', anchor='nw')
         
-        self.entry_url = Entry(self.frm_root, width=50, state='normal')
+        self.entry_url = Entry(self.frm_fields_right, width=50, state='normal')
         self.entry_url.pack(padx=10, pady=10)
         
+        
         # Listbox to show multiple URLs
-        self.lbl_urls = Label(self.frm_root, text="URLs:")
+        self.lbl_urls = Label(self.frm_fields_left, text="URLs:")
         self.lbl_urls.pack(padx=10, pady=(5, 0))
-        self.listbox_urls = Listbox(self.frm_root, selectmode=SINGLE, width=80, height=6)
+        
+        self.listbox_urls = Listbox(self.frm_fields_left, selectmode=SINGLE, width=80, height=6)
         self.listbox_urls.pack(padx=10, pady=5)
 
+        self.frm_btt_left = Frame(self.frm_fields_left)
         # Buttons to manage URLs
-        self.bttn_add_url = Button(self.frm_root, text="Add URL", command=lambda: self.add_url())
+        self.bttn_add_url = Button(self.frm_btt_left, text="Add URL", command=lambda: self.add_url(), width=15)
         self.bttn_add_url.pack(padx=5, pady=2, side='left')
 
-        self.bttn_edit_url = Button(self.frm_root, text="Edit Selected", command=lambda: self.edit_selected())
+        self.bttn_edit_url = Button(self.frm_btt_left, text="Edit Selected", command=lambda: self.edit_selected(), width=15)
         self.bttn_edit_url.pack(padx=5, pady=2, side='left')
 
-        self.bttn_remove_url = Button(self.frm_root, text="Remove Selected", command=lambda: self.remove_selected())
+        self.bttn_remove_url = Button(self.frm_btt_left, text="Remove Selected", command=lambda: self.remove_selected(), width=15)
         self.bttn_remove_url.pack(padx=5, pady=2, side='left')
 
-        self.bttn_save_urls = Button(self.frm_root, text="Save URLs", command=lambda: self.save_urls())
+        self.bttn_save_urls = Button(self.frm_btt_left, text="Save URLs", command=lambda: self.save_urls(), width=15)
         self.bttn_save_urls.pack(padx=5, pady=2, side='left')
-
-        self.bttn_save_default = Button(self.frm_root, text="Save to urls.json", command=lambda: self.save_default_urls())
+        self.bttn_save_default = Button(self.frm_btt_left, text="Save to urls.json", command=lambda: self.save_default_urls(), width=15)
         self.bttn_save_default.pack(padx=5, pady=2, side='bottom')
 
-        self.bttn_load_urls = Button(self.frm_root, text="Load URLs", command=lambda: self.load_urls())
+        self.frm_btt_left.pack(padx=10, pady=5, expand=True, fill='x')
+
+        self.frm_btt_right = Frame(self.frm_fields_right)
+        self.bttn_load_urls = Button(self.frm_btt_right, text="Load URLs", command=lambda: self.load_urls(), width=15)
         self.bttn_load_urls.pack(padx=5, pady=2, side='left')
 
-        self.bttn_open_urls = Button(self.frm_root, text="Open URLs", command=lambda: self.open_urls())
+        self.bttn_open_urls = Button(self.frm_btt_right, text="Open URLs", command=lambda: self.open_urls(), width=15)
         self.bttn_open_urls.pack(padx=5, pady=6, side='left')
         
-        self.bttn_select = Button(self.frm_root, text="Select Videos", command=lambda: self.on_select_videos())
+        self.bttn_select = Button(self.frm_btt_right, text="Select Videos", command=lambda: self.on_select_videos(), width=15)
         self.bttn_select.pack(padx=10, pady=10, side='left')
         
-        self.bttn_select_webcam = Button(self.frm_root, text="Use Webcam", command=lambda: self.on_use_webcam())
+        self.bttn_select_webcam = Button(self.frm_btt_right, text="Use Webcam", command=lambda: self.on_use_webcam(), width=15)
         self.bttn_select_webcam.pack(padx=10, pady=10, side='left')
         
-        self.bttn_start = Button(self.frm_root, text="Start", command=lambda: self.open_urls())
-        self.bttn_start.pack(padx=10, pady=10, side='left')
+        self.frm_bttn_start = Frame(self.frm_fields_right, bd=2, relief='groove')
+        self.bttn_start = Button(self.frm_bttn_start, text="Start", bg='green', fg='white', command=lambda: self.open_urls())
+        self.bttn_start.pack(padx=10, pady=10, expand=True, fill='both')
         
-        if self.on_use_webcam:
+        self.frm_options.pack(expand=True, fill='x')
+        self.frm_fields_left.pack(side='left', expand=True, fill='y')
+        self.frm_fields_right.pack(side='left', expand=True, fill='y')
+
+        self.frm_btt_left.pack()
+        self.frm_btt_right.pack()
+        self.frm_bttn_start.pack(side='bottom', expand=True, fill='both')
+        
+        if self.use_webcam:
             self.bttn_select_webcam.config(state='normal')
         else:
             self.bttn_select_webcam.config(state='disabled')
@@ -83,14 +102,14 @@ class MainWindow:
         self.window.mainloop()
 
     def toggle_webcam(self):
-        if self.on_use_webcam:
+        if self.use_webcam:
             self.entry_url.config(state='disabled')
             self.bttn_select_webcam.config(state='disabled')
-            self.on_use_webcam = False
+            self.use_webcam = False
         else:
             self.entry_url.config(state='normal')
             self.bttn_select_webcam.config(state='normal')
-            self.on_use_webcam = True
+            self.use_webcam = True
 
     def on_select_videos(self):
         video_paths = filedialog.askopenfilenames(
