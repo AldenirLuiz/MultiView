@@ -10,13 +10,13 @@ from main import main
 class LoadingScreen:
     """Tela de carregamento com barra de progresso"""
     def __init__(self, parent):
-        print("instaced")
         self.root = Toplevel(parent)
         self.root.title("Carregando...")
         self.root.geometry("450x180")
         self.root.resizable(False, False)
         self.root.grab_set()
         self.closed = False
+        
         
         # Centralizar na tela
         #self.root.transient(parent)
@@ -55,7 +55,7 @@ class LoadingScreen:
         
     def on_close(self):
         """Quando usuário tenta fechar a tela"""
-        self.closed = True
+        self.closed = False
         self.close()
         
     def update_progress(self, message, percent):
@@ -88,7 +88,6 @@ class MainWindow:
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()
-        self.use_webcam = True
         self.screen = (self.screen_width, self.screen_height)
         self.use_hardware_acceleration = BooleanVar(value=False)
         
@@ -96,13 +95,8 @@ class MainWindow:
         self.frm_fields_left = Frame(self.root, bd=2, relief='groove')
         self.frm_fields_right = Frame(self.root, bd=2, relief='groove')
         
-        
         self.frm_root = Frame(self.root)
         
-        self.chck_webcam = Checkbutton(self.frm_options, text="Use Webcam", indicatoron=True, command=lambda : self.toggle_webcam())
-        self.chck_webcam.pack(padx=10, pady=10, side='left', anchor='nw')
-        self.chck_webcam.select()  # Default to using webcam
-
         self.chck_hardware_acceleration = Checkbutton(
             self.frm_options,
             text="Use Hardware Acceleration (GPU/OpenCL)",
@@ -119,42 +113,40 @@ class MainWindow:
         self.lbl_urls.pack(padx=10, pady=(5, 0))
         
         self.listbox_urls = Listbox(self.frm_fields_left, selectmode=SINGLE, width=80, height=6)
+        self.listbox_urls.bind("<<ListboxSelect>>", self.on_select_from_listbox)
         self.listbox_urls.pack(padx=10, pady=5)
 
         self.frm_btt_left = Frame(self.frm_fields_left)
         # Buttons to manage URLs
-        self.bttn_add_url = Button(self.frm_btt_left, text="Add URL", command=lambda: self.add_url(), width=15)
-        self.bttn_add_url.pack(padx=5, pady=2, side='left')
-
-        self.bttn_edit_url = Button(self.frm_btt_left, text="Edit Selected", command=lambda: self.edit_selected(), width=15)
+        self.frm_edit_btt = Frame(self.frm_btt_left, bd=2, relief='groove')
+        self.bttn_edit_url = Button(self.frm_edit_btt, text="Edit Selected", fg="blue", command=lambda: self.edit_selected(), width=15)
+        self.bttn_edit_url.config(state="disabled")
         self.bttn_edit_url.pack(padx=5, pady=2, side='left')
 
-        self.bttn_remove_url = Button(self.frm_btt_left, text="Remove Selected", command=lambda: self.remove_selected(), width=15)
+        self.bttn_remove_url = Button(self.frm_edit_btt, text="Remove Selected", fg="red", command=lambda: self.remove_selected(), width=15)
+        self.bttn_remove_url.config(state="disabled")
         self.bttn_remove_url.pack(padx=5, pady=2, side='left')
+        self.frm_edit_btt.pack(side="left", padx=10, pady=5)
 
-        self.bttn_save_urls = Button(self.frm_btt_left, text="Save URLs", command=lambda: self.save_urls(), width=15)
-        self.bttn_save_urls.pack(padx=5, pady=2, side='left')
-        self.bttn_save_default = Button(self.frm_btt_left, text="Save to urls.json", command=lambda: self.save_default_urls(), width=15)
+        self.bttn_save_default = Button(self.frm_btt_left, text="Save to urls.json", fg="green", command=lambda: self.save_default_urls(), width=15)
         self.bttn_save_default.pack(padx=5, pady=2, side='bottom')
 
         self.frm_btt_left.pack(padx=10, pady=5, expand=True, fill='x')
 
         self.frm_btt_right = Frame(self.frm_fields_right)
-        self.bttn_load_urls = Button(self.frm_btt_right, text="Load URLs", command=lambda: self.load_urls(), width=15)
+        self.bttn_load_urls = Button(self.frm_btt_right, text="Load urls.json", command=lambda: self.load_urls(), width=15)
         self.bttn_load_urls.pack(padx=5, pady=2, side='left')
 
-        self.bttn_open_urls = Button(self.frm_btt_right, text="Open URLs", command=lambda: self.open_urls(), width=15)
-        self.bttn_open_urls.pack(padx=5, pady=6, side='left')
-        
         self.bttn_select = Button(self.frm_btt_right, text="Select Videos", command=lambda: self.on_select_videos(), width=15)
         self.bttn_select.pack(padx=10, pady=10, side='left')
-        
-        self.bttn_select_webcam = Button(self.frm_btt_right, text="Use Webcam", command=lambda: self.on_use_webcam(), width=15)
-        self.bttn_select_webcam.pack(padx=10, pady=10, side='left')
+
+        self.bttn_add_url = Button(self.frm_btt_right, text="Add URL", command=lambda: self.add_url(), width=15)
+        self.bttn_add_url.pack(padx=5, pady=2, side='left')
         
         self.frm_bttn_start = Frame(self.frm_fields_right, bd=2, relief='groove')
         self.bttn_start = Button(self.frm_bttn_start, text="Start", bg='green', fg='white', command=lambda: self.open_urls())
         self.bttn_start.pack(padx=10, pady=10, expand=True, fill='both')
+        
         
         self.frm_options.pack(expand=True, fill='x')
         self.frm_fields_left.pack(side='left', expand=True, fill='y')
@@ -164,10 +156,6 @@ class MainWindow:
         self.frm_btt_right.pack()
         self.frm_bttn_start.pack(side='bottom', expand=True, fill='both')
         
-        if self.use_webcam:
-            self.bttn_select_webcam.config(state='normal')
-        else:
-            self.bttn_select_webcam.config(state='disabled')
 
         self.frm_root.pack()
         # default urls file in working directory
@@ -176,16 +164,14 @@ class MainWindow:
         self.load_default_urls()
         self.root.mainloop()
 
-    def toggle_webcam(self):
-        if self.use_webcam:
-            self.entry_url.config(state='disabled')
-            self.bttn_select_webcam.config(state='disabled')
-            self.use_webcam = False
-        else:
-            self.entry_url.config(state='normal')
-            self.bttn_select_webcam.config(state='normal')
-            self.use_webcam = True
+    
+    def on_select_from_listbox(self, evento):
+        # Obtém o índice do item selecionado
+        self.bttn_edit_url.config(state="normal")
+        self.bttn_remove_url.config(state="normal")
+        self.window.update_idletasks()
 
+    
     def on_select_videos(self):
         video_paths = filedialog.askopenfilenames(
         title="Select Video Files",
@@ -223,40 +209,6 @@ class MainWindow:
         thread.start()
         
 
-    def on_use_webcam(self):
-        url = self.entry_url.get()
-        self.root.withdraw()
-        
-        # Criar tela de loading
-        loading = LoadingScreen(self.root)
-        
-        # Rodar main() em thread separada
-        def run_main():
-            try:
-                if url:
-                    video_sources = [url]
-                else:
-                    video_sources = [0]  # Use only the webcam
-                
-                main(
-                    video_sources, 
-                    self.screen,
-                    use_gpu=self.use_hardware_acceleration.get(),
-                    on_progress=loading.update_progress
-                )
-            except Exception as e:
-                print(f"Erro ao reproduzir: {e}")
-            finally:
-                try:
-                    loading.close()
-                except:
-                    pass
-                self.root.deiconify()
-                self.root.update_idletasks()
-        
-        thread = threading.Thread(target=run_main, daemon=False)
-        thread.start()
-
     def add_url(self):
         url = self.entry_url.get().strip()
         if not url:
@@ -279,6 +231,7 @@ class MainWindow:
             return
         idx = sel[0]
         val = self.listbox_urls.get(idx)
+        
         self.listbox_urls.delete(idx)
         self.entry_url.delete(0, END)
         self.entry_url.insert(0, val)
@@ -299,7 +252,7 @@ class MainWindow:
             messagebox.showerror("Save URLs", f"Error saving URLs: {e}")
 
     def load_urls(self):
-        file_path = filedialog.askopenfilename(filetypes=[('JSON files','*.json'), ('All files','*.*')])
+        file_path = filedialog.askopenfilename(filetypes=[('JSON files','*.json'), ('All files','*.json')])
         if not file_path:
             return
         try:

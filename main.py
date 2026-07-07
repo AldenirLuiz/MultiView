@@ -334,7 +334,7 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
     frame_cache = deque(maxlen=5)  # Cache de frames recentes
     frame_times = deque(maxlen=15)  # Para cálculo de FPS
     last_frame_time = time.perf_counter()
-    target_wait = 80 #000 // TARGET_FPS * TARGET_FPS # milliseconds (valores baixos faz a tela piscar se tiver atraso)
+    target_wait = 120 #000 // TARGET_FPS * TARGET_FPS # milliseconds (valores baixos faz a tela piscar se tiver atraso)
     first_frame_displayed = False
 
     try:
