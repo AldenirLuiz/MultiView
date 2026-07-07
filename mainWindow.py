@@ -80,51 +80,71 @@ class LoadingScreen:
 
 
 class MainWindow:
-    def __init__(self, screen_width):
-        self.screen_width = screen_width
+    def __init__(self):
         self.root = Tk()
         self.root.title("Multi View Player")
+
+    # Usar somente se necessário um tamanho inicial fixo da janela
         #self.root.geometry(f"{screen_width}x{screen_width}")
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    # Impedir que a janela seja redimensionada
+        self.root.resizable(False, False) 
+
+    # Protocolo de fechamento da janela
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close) 
+
+    # Capta taqmanho horizontal da janela
         self.screen_width = self.root.winfo_screenwidth()
-        self.screen_height = self.root.winfo_screenheight()
-        self.screen = (self.screen_width, self.screen_height)
-        self.use_hardware_acceleration = BooleanVar(value=False)
+
+    # Capta tamanho vertical da janela
+        self.screen_height = self.root.winfo_screenheight() 
+
+    # Agrupa tamanho horizontal e vertical da janela
+        self.screen = (self.screen_width, self.screen_height) 
+
+    # Funcionalidade em testes. Nenhum desempenho adicional percebido
+        self.use_hardware_acceleration = BooleanVar(value=False) 
         
-        self.frm_options = Frame(self.root, bd=2, relief='groove')
-        self.frm_fields_left = Frame(self.root, bd=2, relief='groove')
-        self.frm_fields_right = Frame(self.root, bd=2, relief='groove')
+    # Linha de funcionalidades adicionais
+        self.frm_options = Frame(self.root, bd=2, relief='groove') 
+
+    # Container dos widgets no lado esquerdo da tela
+        self.frm_fields_left = Frame(self.root, bd=2, relief='groove') 
+
+    # Container dos widgets no lado direito da tela
+        self.frm_fields_right = Frame(self.root, bd=2, relief='groove') 
         
-        self.frm_root = Frame(self.root)
-        
+    # checkbox para funcionalidade de aceleração por hardware (ainda em testes)
         self.chck_hardware_acceleration = Checkbutton(
             self.frm_options,
             text="Use Hardware Acceleration (GPU/OpenCL)",
-            variable=self.use_hardware_acceleration,
-        )
+            variable=self.use_hardware_acceleration,)
         self.chck_hardware_acceleration.pack(padx=10, pady=10, side='right', anchor='nw')
-        
+
+    # Campo de inserção de urls
         self.entry_url = Entry(self.frm_fields_right, width=50, state='normal')
         self.entry_url.pack(padx=10, pady=10)
         
         
-        # Listbox to show multiple URLs
+    # Area do Listbox para exibir e manipular URLs
         self.lbl_urls = Label(self.frm_fields_left, text="URLs:")
         self.lbl_urls.pack(padx=10, pady=(5, 0))
         
-        self.listbox_urls = Listbox(self.frm_fields_left, selectmode=SINGLE, width=80, height=6)
-        self.listbox_urls.bind("<<ListboxSelect>>", self.on_select_from_listbox)
+        self.listbox_urls = Listbox(self.frm_fields_left, selectmode=SINGLE, width=80, height=6) # selectmode setado para tipo de seleção simples (evitar editar mais de uma url ao mesmo tempo)
+        self.listbox_urls.bind("<<ListboxSelect>>", self.on_select_from_listbox) # adicionado evento de seleção para ativar os botoes: EDITAR e APAGAR url selecionada
         self.listbox_urls.pack(padx=10, pady=5)
 
-        self.frm_btt_left = Frame(self.frm_fields_left)
-        # Buttons to manage URLs
+        self.frm_btt_left = Frame(self.frm_fields_left) # container dos botoes a esquerda
+
+    # Botões de edição de URLs (á esquerda abaixo do listbox)
         self.frm_edit_btt = Frame(self.frm_btt_left, bd=2, relief='groove')
+
         self.bttn_edit_url = Button(self.frm_edit_btt, text="Edit Selected", fg="blue", command=lambda: self.edit_selected(), width=15)
-        self.bttn_edit_url.config(state="disabled")
+        self.bttn_edit_url.config(state="disabled") # desabilitar botão ate que uma url seja selecionada
         self.bttn_edit_url.pack(padx=5, pady=2, side='left')
 
         self.bttn_remove_url = Button(self.frm_edit_btt, text="Remove Selected", fg="red", command=lambda: self.remove_selected(), width=15)
-        self.bttn_remove_url.config(state="disabled")
+        self.bttn_remove_url.config(state="disabled") # desabilitar botão ate que uma url seja selecionada
         self.bttn_remove_url.pack(padx=5, pady=2, side='left')
         self.frm_edit_btt.pack(side="left", padx=10, pady=5)
 
@@ -157,7 +177,6 @@ class MainWindow:
         self.frm_bttn_start.pack(side='bottom', expand=True, fill='both')
         
 
-        self.frm_root.pack()
         # default urls file in working directory
         self.default_urls_file = os.path.join(os.getcwd(), 'urls.json')
         # try auto-load default URLs
@@ -169,7 +188,7 @@ class MainWindow:
         # Obtém o índice do item selecionado
         self.bttn_edit_url.config(state="normal")
         self.bttn_remove_url.config(state="normal")
-        self.window.update_idletasks()
+        self.root.update_idletasks()
 
     
     def on_select_videos(self):
@@ -231,7 +250,7 @@ class MainWindow:
             return
         idx = sel[0]
         val = self.listbox_urls.get(idx)
-        
+
         self.listbox_urls.delete(idx)
         self.entry_url.delete(0, END)
         self.entry_url.insert(0, val)
@@ -331,6 +350,5 @@ class MainWindow:
 
 
 if __name__ == "__main__":
-    screen_width = 800
-    main_window = MainWindow(screen_width)
+    main_window = MainWindow()
     
