@@ -125,9 +125,8 @@ class MainWindow:
         self.entry_url = Entry(self.frm_fields_right, width=50, state='normal')
         self.entry_url.pack(padx=10, pady=10)
         
-        
     # Area do Listbox para exibir e manipular URLs
-        self.lbl_urls = Label(self.frm_fields_left, text="URLs:")
+        self.lbl_urls = Label(self.frm_fields_left, text="URLs Salvas:")
         self.lbl_urls.pack(padx=10, pady=(5, 0))
         
         self.listbox_urls = Listbox(self.frm_fields_left, selectmode=SINGLE, width=80, height=6) # selectmode setado para tipo de seleção simples (evitar editar mais de uma url ao mesmo tempo)
@@ -136,7 +135,7 @@ class MainWindow:
 
         self.frm_btt_left = Frame(self.frm_fields_left) # container dos botoes a esquerda
 
-    # Botões de edição de URLs (á esquerda abaixo do listbox)
+    # Botões de funcionalidades de URLs (á esquerda abaixo do listbox)
         self.frm_edit_btt = Frame(self.frm_btt_left, bd=2, relief='groove')
 
         self.bttn_edit_url = Button(self.frm_edit_btt, text="Edit Selected", fg="blue", command=lambda: self.edit_selected(), width=15)
@@ -153,6 +152,7 @@ class MainWindow:
 
         self.frm_btt_left.pack(padx=10, pady=5, expand=True, fill='x')
 
+    # Botoes de inserção de dados (lado direiro abaixo da caixa de entrada de dados)
         self.frm_btt_right = Frame(self.frm_fields_right)
         self.bttn_load_urls = Button(self.frm_btt_right, text="Load urls.json", command=lambda: self.load_urls(), width=15)
         self.bttn_load_urls.pack(padx=5, pady=2, side='left')
@@ -167,7 +167,7 @@ class MainWindow:
         self.bttn_start = Button(self.frm_bttn_start, text="Start", bg='green', fg='white', command=lambda: self.open_urls())
         self.bttn_start.pack(padx=10, pady=10, expand=True, fill='both')
         
-        
+    # Empacotamento e configuração dos containers de widgets
         self.frm_options.pack(expand=True, fill='x')
         self.frm_fields_left.pack(side='left', expand=True, fill='y')
         self.frm_fields_right.pack(side='left', expand=True, fill='y')
@@ -176,21 +176,23 @@ class MainWindow:
         self.frm_btt_right.pack()
         self.frm_bttn_start.pack(side='bottom', expand=True, fill='both')
         
-
+    # Pre carregamento de urls salvas em arquivo
         # default urls file in working directory
         self.default_urls_file = os.path.join(os.getcwd(), 'urls.json')
         # try auto-load default URLs
         self.load_default_urls()
+    
+    # Loop da janela principal
         self.root.mainloop()
 
-    
-    def on_select_from_listbox(self, evento):
-        # Obtém o índice do item selecionado
+    # Função para evento de seleção no listbox de urls
+    def on_select_from_listbox(self, event):
+        event.__dict__["widget"].config(fg="green")
         self.bttn_edit_url.config(state="normal")
         self.bttn_remove_url.config(state="normal")
         self.root.update_idletasks()
 
-    
+    # Função de carregamento de video em arquivos selecionados
     def on_select_videos(self):
         video_paths = filedialog.askopenfilenames(
         title="Select Video Files",
