@@ -82,7 +82,7 @@ class LoadingScreen:
 class MainWindow:
     def __init__(self):
         self.root = Tk()
-        self.root.title("Multi View Player")
+        self.root.title("RTSP Multi View Player")
 
     # Usar somente se necessário um tamanho inicial fixo da janela
         #self.root.geometry(f"{screen_width}x{screen_width}")
@@ -109,10 +109,10 @@ class MainWindow:
         self.frm_options = Frame(self.root, bd=2, relief='groove') 
 
     # Container dos widgets no lado esquerdo da tela
-        self.frm_fields_left = Frame(self.root, bd=2, relief='groove') 
+        self.frm_fields_left = Frame(self.root) 
 
     # Container dos widgets no lado direito da tela
-        self.frm_fields_right = Frame(self.root, bd=2, relief='groove') 
+        self.frm_fields_right = Frame(self.root) 
         
     # checkbox para funcionalidade de aceleração por hardware (ainda em testes)
         self.chck_hardware_acceleration = Checkbutton(
@@ -120,10 +120,24 @@ class MainWindow:
             text="Use Hardware Acceleration (GPU/OpenCL)",
             variable=self.use_hardware_acceleration,)
         self.chck_hardware_acceleration.pack(padx=10, pady=10, side='right', anchor='nw')
-
+        
     # Campo de inserção de urls
-        self.entry_url = Entry(self.frm_fields_right, width=50, state='normal')
-        self.entry_url.pack(padx=10, pady=10)
+        self.frm_entry_name = Frame(self.frm_fields_right, bd=1, relief="sunken")
+        self.label_url_name = Label(self.frm_entry_name, text="Nomear Url:")
+        self.label_url_name.pack(anchor="nw")
+        self.entry_url_name = Entry(self.frm_entry_name, width=50, state='normal', name="url_name")
+        self.entry_url_name.pack(padx=10, pady=10, ipadx=4, ipady=4)
+        self.frm_entry_name.pack(expand=True, fill="both")
+
+        self.frm_entry_url = Frame(self.frm_fields_right, bd=1, relief="sunken")
+        self.label_url = Label(self.frm_entry_url, text="Url:")
+        self.label_url.pack(anchor="nw")
+        self.entry_url = Entry(self.frm_entry_url, width=50, state='normal', name="url_name")
+        self.entry_url.pack(padx=10, pady=10, ipadx=4, ipady=4)
+        self.frm_entry_url.pack(expand=True, fill="both")
+
+        # self.entry_url = Entry(self.frm_fields_right, width=50, state='normal', name="url_body")
+        # self.entry_url.pack(padx=10, pady=10)
         
     # Area do Listbox para exibir e manipular URLs
         self.lbl_urls = Label(self.frm_fields_left, text="URLs Salvas:")
@@ -192,7 +206,7 @@ class MainWindow:
         self.bttn_remove_url.config(state="normal")
         self.root.update_idletasks()
 
-    # Função de carregamento de video em arquivos selecionados
+    # Função de carregamento em arquivos de video selecionados
     def on_select_videos(self):
         video_paths = filedialog.askopenfilenames(
         title="Select Video Files",
@@ -229,14 +243,59 @@ class MainWindow:
         thread = threading.Thread(target=run_main, daemon=False)
         thread.start()
         
-
     def add_url(self):
-        url = self.entry_url.get().strip()
-        if not url:
-            messagebox.showwarning("Add URL", "Please enter a URL before adding.")
+        name: str = self.entry_url_name.get().strip()
+        url: str = self.entry_url.get().strip()
+        saved = self.listbox_urls.get(0, END)
+
+        if not name:
+            messagebox.showwarning("Nomear Url", "Por favor insira um NOME para url a ser adicionada.")
             return
-        self.listbox_urls.insert(END, url)
-        self.entry_url.delete(0, END)
+        if not url:
+            messagebox.showwarning("Add URL", "Por favor insira uma url válida.")
+            return
+        
+        if self.check_urls({name: url}):
+            self.listbox_urls.insert(END, name.capitalize())
+            with open("tmpUrl.json", 'w', encoding='utf-8') as f:
+                json.dump({name: url}, f, ensure_ascii=False, indent=2)
+
+            self.entry_url_name.delete(0, END)
+            self.entry_url.delete(0, END)
+        
+        return
+
+
+    def check_urls(self, entry):
+        
+        try: 
+            with open("urls.json", "r", encoding="utf-8") as f:
+                str_urls = json.load(f)  
+        except (FileNotFoundError, json.JSONDecodeError):
+            str_urls = []
+
+        # 2. Extrai a chave e o valor de 'entry' uma única vez (evita repetir list())
+        entry_name, entry_url = next(iter(entry.items()))
+
+        # 3. Varre a lista de URLs salvas
+        for tmp_url in str_urls:
+            # Verifica se o nome (chave) já existe
+            if entry_name in tmp_url:
+                messagebox.showwarning(
+                    "Nome Existente",
+                    "Existe uma URL salva com este Nome, por favor escolha outro nome.",
+                )
+                return 0
+
+            # Verifica se a URL (valor) já existe
+            if entry_url in tmp_url.values():
+                messagebox.showwarning(
+                    "URL Existente",
+                    "Esta URL ja está na Lista. Nenhum dado será salvo.",
+                )
+                return 0
+
+        return True
 
     def remove_selected(self):
         sel = self.listbox_urls.curselection()
@@ -316,7 +375,9 @@ class MainWindow:
             messagebox.showerror("Save URLs", f"Error saving URLs: {e}")
 
     def open_urls(self):
+
         urls = list(self.listbox_urls.get(0, END))
+        print(urls)
         if not urls:
             messagebox.showwarning("Open URLs", "No URLs to open. Add or load URLs first.")
             return
