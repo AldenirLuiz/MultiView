@@ -120,7 +120,7 @@ class MainWindow:
             text="Use Hardware Acceleration (GPU/OpenCL)",
             variable=self.use_hardware_acceleration,)
         self.chck_hardware_acceleration.pack(padx=10, pady=10, side='right', anchor='nw')
-        
+    
     # Campo de inserção de urls
         self.frm_entry_name = Frame(self.frm_fields_right, bd=1, relief="sunken")
         self.label_url_name = Label(self.frm_entry_name, text="Nomear Url:")
@@ -136,8 +136,6 @@ class MainWindow:
         self.entry_url.pack(padx=10, pady=10, ipadx=4, ipady=4)
         self.frm_entry_url.pack(expand=True, fill="both")
 
-        # self.entry_url = Entry(self.frm_fields_right, width=50, state='normal', name="url_body")
-        # self.entry_url.pack(padx=10, pady=10)
         
     # Area do Listbox para exibir e manipular URLs
         self.lbl_urls = Label(self.frm_fields_left, text="URLs Salvas:")
@@ -264,7 +262,6 @@ class MainWindow:
             self.entry_url.delete(0, END)
         
         return
-
 
     def check_urls(self, entry):
         
