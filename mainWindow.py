@@ -121,6 +121,8 @@ class MainWindow:
             variable=self.use_hardware_acceleration,)
         self.chck_hardware_acceleration.pack(padx=10, pady=10, side='right', anchor='nw')
     
+        self.urls = list()
+
     # Campo de inserção de urls
         self.frm_entry_name = Frame(self.frm_fields_right, bd=1, relief="sunken")
         self.label_url_name = Label(self.frm_entry_name, text="Nomear Url:")
@@ -136,7 +138,6 @@ class MainWindow:
         self.entry_url.pack(padx=10, pady=10, ipadx=4, ipady=4)
         self.frm_entry_url.pack(expand=True, fill="both")
 
-        
     # Area do Listbox para exibir e manipular URLs
         self.lbl_urls = Label(self.frm_fields_left, text="URLs Salvas:")
         self.lbl_urls.pack(padx=10, pady=(5, 0))
@@ -245,7 +246,7 @@ class MainWindow:
         name: str = self.entry_url_name.get().strip()
         url: str = self.entry_url.get().strip()
         saved = self.listbox_urls.get(0, END)
-
+        
         if not name:
             messagebox.showwarning("Nomear Url", "Por favor insira um NOME para url a ser adicionada.")
             return
@@ -254,9 +255,12 @@ class MainWindow:
             return
         
         if self.check_urls({name: url}):
-            self.listbox_urls.insert(END, name.capitalize())
-            with open("tmpUrl.json", 'w', encoding='utf-8') as f:
-                json.dump({name: url}, f, ensure_ascii=False, indent=2)
+
+            self.listbox_urls.insert(END, name.upper())
+            self.urls.append({name: url})
+            with open("urls.json", 'w', encoding='utf-8') as f:
+                
+                json.dump(self.urls, f, ensure_ascii=False, indent=2)
 
             self.entry_url_name.delete(0, END)
             self.entry_url.delete(0, END)
@@ -355,7 +359,9 @@ class MainWindow:
                 return
             self.listbox_urls.delete(0, END)
             for u in data:
-                self.listbox_urls.insert(END, str(u))
+                self.urls.append(u)
+                temp = list(u.keys())
+                self.listbox_urls.insert(END, str(temp[0]))
         except Exception:
             return
 
@@ -372,9 +378,9 @@ class MainWindow:
             messagebox.showerror("Save URLs", f"Error saving URLs: {e}")
 
     def open_urls(self):
+        print(self.urls)
+        urls = [list(x.values())[0] for x in self.urls]
 
-        urls = list(self.listbox_urls.get(0, END))
-        print(urls)
         if not urls:
             messagebox.showwarning("Open URLs", "No URLs to open. Add or load URLs first.")
             return
