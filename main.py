@@ -329,7 +329,8 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
     # Criar tile vazio (para slots sem vídeo)
     empty_tile = np.full((tile_height, tile_width, 3), 255, dtype=np.uint8)
     if hardware_accel:
-        empty_tile = cv2.UMat(empty_tile)
+        empty_tile = cv2.UMat(tile_height, tile_width, cv2.CV_8UC3)
+        empty_tile.setTo((255, 255, 255))
 
     frame_cache = deque(maxlen=5)  # Cache de frames recentes
     frame_times = deque(maxlen=15)  # Para cálculo de FPS
@@ -338,6 +339,8 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
     first_frame_displayed = False
 
     try:
+        cv2.namedWindow("ALB Tech - RTSP Multiview", cv2.WINDOW_NORMAL)
+        cv2.setWindowProperty("ALB Tech - RTSP Multiview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         while True:
             start_frame_time = time.perf_counter()
             frame_times.append(start_frame_time)
@@ -396,7 +399,8 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
                 rows_tiles.append(cv2.hconcat(row_tiles))
 
             combined = cv2.vconcat(rows_tiles)
-            cv2.imshow('Video Stream', _as_mat(combined))
+            
+            cv2.imshow("ALB Tech - RTSP Multiview", _as_mat(combined))
 
             # Controle adaptativo de FPS
             elapsed = (time.perf_counter() - start_frame_time) * 1000  # em ms
@@ -409,7 +413,17 @@ def main(video_sources, screen_width, use_gpu=False, columns=2, rows=2, on_progr
                 fps_calc = TARGET_FPS
 
             # Interromper se pressionar 'q'
-            if cv2.waitKey(wait_key) & 0xFF == ord('q'):
+            if cv2.waitKey(wait_key) & 0xFF == ord('f'):
+                # Pega a propriedade atual da tela cheia
+                estado_atual = cv2.getWindowProperty("ALB Tech - RTSP Multiview", cv2.WND_PROP_FULLSCREEN)
+                
+                # Alterna o estado (1 é tela cheia, 0 é janela normal)
+                if estado_atual == cv2.WINDOW_FULLSCREEN:
+                    cv2.setWindowProperty("ALB Tech - RTSP Multiview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_NORMAL)
+                else:
+                    cv2.setWindowProperty("ALB Tech - RTSP Multiview", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+            elif cv2.waitKey(wait_key) & 0xFF == ord('q'):
                 break
 
     except KeyboardInterrupt:
